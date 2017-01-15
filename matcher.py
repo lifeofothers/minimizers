@@ -53,8 +53,6 @@ def get_RC(sequence):
 
 # returns smallest of the kmers from the list
 def get_minimizer(kmers):
-    kmers = sorted(kmers)
-
     result = Minimizer(kmers[0].s, [kmers[0].i, kmers[0].p])
     #print(result)
     for k in kmers[1:]:
@@ -66,73 +64,102 @@ def get_minimizer(kmers):
 
     return result
 
-def get_triples(begin, end, i, w, k):
+def get_triples(begin_index, end_index, i, w, k):
     # returns a list of (s, i, p) triples (any) using window w
-    global strings
+    global current_read
+    global get_triples_time
+    global wcount
 
-    if begin >= 0 and end > 0: # prefix or substring
-        T = strings[0][begin:end]
-    elif begin == -1 and end > 0: # suffix
-        T = strings[0][-end+1::1]
+    start = time.time()
+
+    current_window = current_read[begin_index:end_index]
 
     #print(T)
     result = []
-    L = w + k - 1 # how many it will process to find 1 k-mer
+    #L = w + k - 1 # how many it will process to find 1 k-mer
     #print(get_triples(T[1:], i, window, k))
     for p in range(w):
-        # left end minimizer
-        if begin != -1:
-            # making sure we didn't go go past last possible k-mer
-            if len(T[p:]) >= k:
-                #print(T[p:])
-                triple = Triple(''.join(T[p:p + k]), i, p + begin)
-                #print(triple)
-                result.append(triple)                                                         # p + i ??
-            else:
-                break
-        # right end minimizer
+        # making sure we didn't go go past last possible k-mer
+        if len(current_window[p:]) >= k:
+            #print(T[p:])
+            wcount += 1
+            temp = Triple(''.join(current_window[p:p + k]), i, p + begin_index)# p + i ??
+            
+            #print(triple)
         else:
-            # FIX THIS TO TAKE THE RIGHT RIGHT END MINIMIZER
-            #print(T[-end:])
-            #triple = Triple(''.join(T[p:p + k]), i, len(T) - end)
-            #print(end)
-            #print()
-            if len(T[p:]) >= k:
-                triple = Triple(''.join(T[p:p+k]), i, len(T) - k)
-                #                                                   ^ hack
-                #print(triple)
-                result.append(triple)
+            break
+        
+        if len(result) == 0:
+            result.append(temp)
+        elif temp.s < result[0].s:
+            result = [temp]
+        elif temp.s == result[0].s:
+            result.append(temp)
+        #insort(result, temp)
+    get_triples_time += (time.time() - start)
+##    for r in result:
+##        print(r)
+##    print()
+    
     return result
 
+def minimizer_exists(minimizer):
+    global minimizer_exists_time
+
+    start = time.time()
+    
+    # check if the minimizer exists
+    for m in miniz:
+        # not in list
+        if m.s > minimizer.s:
+            minimizer_exists_time += (time.time() - start)
+            return False
+        if m.s == minimizer.s:
+##            print(m.s + ' exists')
+            minimizer_exists_time += (time.time() - start)
+            return True
+
+def get_end_minimizers(read_number, k):
+    global unused_triples
+    global current_read
+    global total_ender_time
+
+    start = time.time()
+
+    left_minimizer = Minimizer(current_read[:k], [read_number, 0])
+    right_minimizer = Minimizer(current_read[-k:], [read_number, len(current_read) - k])
+        
+    if not minimizer_exists(left_minimizer):
+        insort(miniz, left_minimizer)
+        unused_triples -= 1
+    if not minimizer_exists(right_minimizer):
+        insort(miniz, right_minimizer)
+        unused_triples -= 1
+
+    total_ender_time += (time.time() - start)
+
+wcount = 0
+##@profile
 def get_interior_minimizers(read_number, w, k):
-    global strings
     global miniz
     global unused_triples
 
+    global total_inter_time
+
+    start = time.time()
+
     L = w + k - 1
-    T = strings[0]
     #print('Interior minimizers:')
-    for i in range(0, len(T) - L + 1):
-        kmers = get_triples(i, i+L, read_number, w, k)
+    for i in range(0, len(current_read) - L + 1):
+        kmers = get_triples(i, i + L, read_number, w, k)
         #print(kmers)
         #[print(km) for km in kmers]
+        if len(kmers) > 1:
+            print(kmers)
         miniCands = get_minimizer(kmers)
 
-        exists = False
-        # check if the minimizer exists
-        for m in miniz:
-            # not in list
-            if m.s > miniCands.s:
-                exists = False
-                break
-            if m.s == miniCands.s:
-                #print(m.s + ' exists')
-                exists = True
-                break
-##        print(skip)
-
         # add it if it's the first one of the kind
-        if not exists:
+        if not minimizer_exists(miniCands):
             #print('inserting ' + str(miniCand))
             #minimizers.append(miniCand)
             locs = miniCands.get_locations()
@@ -152,72 +179,29 @@ def get_interior_minimizers(read_number, w, k):
                     locs = miniCands.get_locations()
                     m.add_locations(locs)
                     break
-
-##    for m in minimizers:
-##        print(m)
-
-def get_end_minimizers(read_number, k, left=True):
-    global strings
-    global miniz
-    global unused_triples
-
-    T = strings[0]
-
-    max_u = len(T) - k + 1
-    for u in range(1, max_u + 1):
-        L = u + k - 1
-        #print('End minimizers:')
-        for i in range(0, len(T) - L + 1):
-            if left:
-                kmers = get_triples(0, u + k, read_number, u, k)
-            else:
-                kmers = get_triples(-1, u + k, read_number, u, k)
-            #[print(km) for km in kmers]
-            miniCands = get_minimizer(kmers)
-
-            exists = False
-            # check if the minimizer exists
-            for m in miniz:
-                if m.s == miniCands.s:
-                    #print(m.s + ' exists')
-                    exists = True
-                    break
-    ##        print(skip)
-
-            # add it if it's the first one of the kind
-            if not exists:
-                #print('inserting ' + str(miniCand))
-                #minimizers.append(miniCand)
-                locs = miniCands.get_locations()
-                temp = Minimizer(miniCands.s, [locs[0][0], locs[0][1]])
-                temp.add_locations(locs)
-                unused_triples -= 1
-                insort(miniz, temp)
-##                miniz.append(temp)
-                #print(temp)
-            # extend the minimizer with the same string
-            else:
-                for m in miniz:
-                    # when we find a match
-                    if miniCands.s == m.s:
-                        # if it doesn't have that location, extend it
-                        locs = miniCands.get_locations()
-                        m.add_locations(locs)
-                        break
-    return
-
+    total_inter_time += (time.time() - start)
+    
+##@profile
 from bisect import insort, bisect_left
+import time
 
 #@profile
 def main():
-    import time
-    import sys
+##    import time
 ##    from bisect import insort, bisect_left
 
-    start = time.time()
 
     global read_n
+    global current_read
+    global miniz
+    global using_RC
+    global wcount
 
+    # for k = 20 and L = 60, max w is 41
+    # L = k + w - 1
+    w = 20
+    k = 20
+    
     with open('ecoli10k.fa', 'r') as f:
         for line in f:
             line = line.strip()
@@ -226,55 +210,59 @@ def main():
                     print(line)
                     print()
                 else: # sequence
-                    # for k = 20 and L = 60, max w is 41
-                    # L = k + w - 1
-                    w = 20
-                    k = 20
-                    
-                    usingRC = False
-                    strings[0] = line#'GGGTACGTCCACGT'#'2310321012331011'
-                    #print(line)
-                    get_interior_minimizers(read_n, w, k)
-##                    get_end_minimizers(read_n, k, True)
-##                    get_end_minimizers(read_n, k, False)
-##                    print('ORG:')
-##                    print_miniz(20)
-##                    miniz = []
 
-                    usingRC = True
-                    strings[0] = get_RC(line)#get_RC('GGGTACGTCCACGT')#'2310321012331011'
-##                    #print(line)
-                    get_interior_minimizers(read_n, w, k)
-##                    get_end_minimizers(read_n, k, True)
-##                    get_end_minimizers(read_n, k, False)
-##                    print('RC:')
-##                    print_miniz(20)
-##                    miniz = []
+                    wcount = 0
 
-                    #break
+                    using_RC = False
+                    current_read= line
+                    get_interior_minimizers(read_n, w, k)
+                    get_end_minimizers(read_n, k)
+
+                    using_RC = True
+                    current_read = get_RC(line)
+                    get_interior_minimizers(read_n, w, k)
+                    get_end_minimizers(read_n, k)
+
+##                    break
+
                     if read_n % 10 == 0:
                         print('Read ' + str(read_n) + '...')
-                    read_n += 1
-        #minimizers = sorted(minimizers)
 
+                    read_n += 1
+                    
     print('%d distinct miniz in total' % len(miniz))
     print_miniz(20)
 
-    end = time.time()
-    print('Time taken: %s seconds' % (end-start))
     # assuming 1 byte per letter
+    global memory
     memory = k * len(miniz)
     for m in miniz:
         # assuming 1 byte per index per location
         memory += 2 * len(m.get_locations())
     print('Memory used: %s B' % memory)
 
-strings = ['']
+current_read = ''
 miniz = []
 read_n = 0
+using_RC = False
 unused_triples = 0
+memory = 0
+
+total_inter_time = 0
+total_ender_time = 0
+get_triples_time = 0
+minimizer_exists_time = 0
 
 if __name__ == '__main__':
+    start = time.time()
     main()
+    end = time.time()
+    total_time = end - start
+    print('Total time taken: %.3f seconds (%.3f seconds per read)' % (total_time, total_time / read_n))
+    print('    get_interior_minimizers: %.3f seconds' % total_inter_time)
+    print('    get_end_minimizers: %.3f seconds' % total_ender_time)
+    print('        get_triples: %.3f seconds' % get_triples_time)
+    print('        minimizer_exists: %.3f seconds' % minimizer_exists_time)
+    print('Unused triples: %d' % unused_triples)
 ##    print(str(unused_triples) + ' triples needlessly created')
           
