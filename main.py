@@ -91,7 +91,7 @@ def get_minimizer_from_window(begin_index, end_index, i, w, k):
                                  [i, p + begin_index, USING_RC])
             else:
                 temp = Minimizer(''.join(current_window[p:p + k]), \
-                                 [1670-1-i, p + begin_index, USING_RC])
+                                 [TOTAL_READS-1-i, p + begin_index, USING_RC])
         else:
             break
 
@@ -120,9 +120,9 @@ def calculate_end_minimizers(k):
                                     [READ_NUMBER, len(CURRENT_READ) - k, USING_RC])
     else:
         left_minimizer = Minimizer(CURRENT_READ[:k], \
-                                   [TOTAL_READS - READ_NUMBER - 1, 0, USING_RC])
+                                   [ TOTAL_READS -  1 - READ_NUMBER , 0, USING_RC])
         right_minimizer = Minimizer(CURRENT_READ[-k:], \
-                                    [TOTAL_READS - READ_NUMBER - 1, \
+                                    [  TOTAL_READS - 1 - READ_NUMBER , \
                                      len(CURRENT_READ) - k, USING_RC])
 
     if not get_minimizer_lookalike(left_minimizer):
