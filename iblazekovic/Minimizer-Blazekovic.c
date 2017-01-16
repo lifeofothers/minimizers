@@ -1,3 +1,7 @@
+/* Program has defined w and k in variables, it can be changed
+   Input file is selected with one of the commented lines, just remove comment in front of desired input file */
+
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
