@@ -29,7 +29,6 @@ If, on the other hand, the parameters are entered, it will them as well as the f
 
 ### Example
 
-Load file `ecoli100k.fa` and use w = 10, k = 15 when finding minimizers. The output file name will then be `ecoli100k.fa_res.txt`.
+Loading file `ecoli100k.fa` and using w = 10, k = 15 when finding minimizers. The output file name will then be `ecoli100k.fa_res.txt`.
 
     main.py 10 15 ecoli100k.fa
-    
