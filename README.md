@@ -21,8 +21,15 @@ main.py performs a reading of the input file in FASTA format containing a DNA se
 ### Command line
 The script is run from the terminal (command prompt):
 
-    main.py [filename]
+    main.py [w k filename]
 
-The parameter `[filename]` is not mandatory, and if not used will cause the script to use the test file ecoli100k.fa and print the first 20 minimizers in ascending order (alphabetically) to standard output (nothing will be saved to a file).
+The parameters `w k filename` are not mandatory, and if not used will cause the script to use the test file ecoli100k.fa from the current directory of the script and find all minimizers where `k` and `w` parameters will be set to 20 and then print the first 20 minimizers in ascending order (alphabetically) to standard output (nothing will be saved to a file).
 
-### Examples
+If, on the other hand, the parameters are entered, it will them as well as the file to find all minimizers that will then be saved to a file called the same as the input file, with a string `_res.txt` appended to it. The recommended values for `w` and `k` are both 20.
+
+### Example
+
+Load file `ecoli100k.fa` and use w = 10, k = 15 when finding minimizers. The output file name will then be `ecoli100k.fa_res.txt`.
+
+    main.py 10 15 ecoli100k.fa
+    
