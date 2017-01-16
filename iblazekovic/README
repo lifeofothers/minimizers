@@ -1,11 +1,12 @@
-First you need to compile the source code using command:
+First, program is compiled using the command:
 
 gcc Minimizer-Blazekovic.c
 
-After you have done that, you can run the program using command:
+After that is done, program is run using command:
 
-./a.out (or some other name you picked when compiling)
+./a.out (or some other name that is picked when compiling)
 
+Parameters of the program are defined in source code, arguments are not passed when running the program.
 If you wish to change parameters of program such as w and k, or input file,
 just follow the instructions given in source code.
-When running the program, you don't pass any arguments to it.
+Input files must be in the same folder as the program (or the path can be changed in source code).
