@@ -23,7 +23,7 @@ The script is run from the terminal (command prompt):
 
     main.py [w k filename]
 
-The parameters `w k filename` are not mandatory, and if not used will cause the script to use the test file ecoli100k.fa from the current directory of the script and find all minimizers where `k` and `w` parameters will be set to 20 and then print the first 20 minimizers in ascending order (alphabetically) to standard output (nothing will be saved to a file).
+The parameters `w k filename` are not mandatory, and if not used will cause the script to use the test file ecoli100k.fa from the current directory of the script and find all minimizers where `k` and `w` parameters will be set to 20 and then print the first 20 minimizers in ascending order (alphabetically) to standard output (nothing will be saved to a file). Parameter `k` represents the k-mer size, and parameter `w` window size (this is explained in detail in the paper linked above).
 
 If, on the other hand, the parameters are entered, it will them as well as the file to find all minimizers that will then be saved to a file called the same as the input file, with a string `_res.txt` appended to it. The recommended values for `w` and `k` are both 20.
 
